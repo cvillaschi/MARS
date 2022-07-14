@@ -35,7 +35,7 @@ uses
   StrUtils
 , MARS.Core.Registry.Utils, MARS.Core.URL, MARS.Utils.JWT, MARS.Core.Utils
 , MARS.Metadata.Reader
-, MARS.Core.MediaType, MARS.Core.JSON
+, MARS.Core.MediaType, MARS.Core.JSON, MARS.Metadata.Attributes
 {$IFNDEF LINUX}, MARS.YAML.ReadersAndWriters{$ENDIF}
 ;
 
@@ -114,6 +114,12 @@ begin
     begin
       LSchema.SetType('object');
       LSchema.description := 'Schema for type ' + AType.QualifiedName;
+      AType.HasAttribute<MetaDescriptionAttribute>(
+        procedure (AAttr: MetaDescriptionAttribute)
+        begin
+          LSchema.description := AAttr.Text;
+        end
+      );
 
       for LMember in AType.GetPropertiesAndFields do
       begin
@@ -143,6 +149,12 @@ begin
 
         LProperty := LSchema.GetProperty(LJSONName);
         LProperty.SetType(LMember.GetRttiType, Self);
+        LMember.HasAttribute<MetaDescriptionAttribute>(
+          procedure (AAttr: MetaDescriptionAttribute)
+          begin
+            LProperty.description := AAttr.Text;
+          end
+      );
       end;
     end
     else if AType is TRttiEnumerationType then
